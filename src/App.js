@@ -1,24 +1,53 @@
-import logo from './logo.svg';
-import './App.css';
+import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
+import React from "react";
 
 function App() {
+  const [paidFor, setPaidFor] = React.useState(false);
+
+  const amount = "5000";
+  const currency = "USD";
+  const handleApprove = (orderId) => {
+    console.log("orderId", orderId);
+    setPaidFor(true);
+  };
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <PayPalScriptProvider
+      options={{
+        "client-id":
+          "AXLazjLNxLRT-5M12Tq6uYUvJBxzvDDKTaLm6Os1FyH1O7odyxXTJBCccEohff8cUMk7MzmshMKvurmP",
+      }}
+    >
+      <div className="test">
+        <PayPalButtons
+          style={{ layout: "vertical", shape: "pill" }}
+          createOrder={(data, actions) => {
+            return actions.order
+              .create({
+                purchase_units: [
+                  {
+                    amount: {
+                      currency_code: currency,
+                      value: amount,
+                    },
+                  },
+                ],
+              })
+              .then((orderId) => {
+                // Your code here after create the order
+                return orderId;
+              });
+          }}
+          onApprove={async (data, actions) => {
+            const order = await actions.order.capture();
+            console.log("order", order);
+            handleApprove(data.orderID);
+          }}
+          onError={(err) => {
+            console.log("err", err);
+          }}
+        />
+      </div>
+    </PayPalScriptProvider>
   );
 }
 
